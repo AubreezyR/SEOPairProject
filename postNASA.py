@@ -1,9 +1,7 @@
 import requests
 import pprint
-import sqlite3
 import json
-import pandas as pd
-#from IPython.display import display
+from datetime import date
 
 # Add exception if file does not exist or no string in file
 
@@ -25,7 +23,7 @@ def day_in_month(day, month):
 
 
 #Still need to make sure year is valid
-def get_inital_date():
+def get_date():
     year = str(input("Enter year of your inital date: "))
     month = str(input("Enter the month of your inital date as a number (1 for jan, 2 for feb, etc.): "))
     while int(month) < 1 or int(month) > 12:
@@ -41,98 +39,6 @@ def get_inital_date():
     return year + "-" + month + "-" + day
 
 
-def valid_end_date(inital_date, end_year, end_month, end_day):
-    if int(end_year) < int(inital_date[0:4]):
-        return False
-    if int(end_year) > int(inital_date[0:4]):
-        return True
-    if int(end_month) < int(inital_date[5:7]):
-        return False
-    if int(end_month) > int(inital_date[5:7]):
-        return True
-    if int(end_day) < int(inital_date[8:10]):
-        return False
-    if int(end_day) > int(inital_date[8:10]):
-        return True
-    return True
-
-
-def get_final_date(inital_date):
-    response = input("Would you like to only get the asteroids of 1 week? Type y/n: ")
-    if response[0].lower() == 'y':
-        return inital_date
-    year = str(input("Enter year of your final date: "))
-    month = str(input("Enter the month of your final date as a number (1 for jan, 2 for feb, etc.): "))
-    while int(month) < 1 or int(month) > 12:
-        month = input("Please enter a number between 1 and 12 for the month: ")
-    day = str(input("Enter the day of your final date: "))
-    while not day_in_month(int(day), int(month)):
-        day = str(input("Enter a valid day for the month of " + month + ": "))
-    
-    if int(day) < 10:
-        day = "0" + day
-    if int(month) < 10:
-        month = "0" + month
-    
-    if not valid_end_date(inital_date, year, month, day):
-        print("Your end date must be after your start date.")
-        return get_final_date(inital_date)
-    return year + "-" + month + "-" + day
-
-#def create_Dataframe(data):
-    #asteroidDict ={"asteroid_names":[],
-     #               "distance_from_earth":[],
-  #                  "velocity":[]
-#    }
- #   for i in range(len(data['near_earth_objects'][inital_date])-1):
-  #      name = data['near_earth_objects'][inital_date][i]['name']
-   #     asteroidDict["asteroid_names"].append(name)
-    ##   asteroidDict["distance"].append(distanceFromEarth)
-      #  velocity =data['near_earth_objects'][inital_date][i]['close_approach_data'][0]['relative_velocity']['kilometers_per_hour']
-       # asteroidDict["velocity"].append(velocity)
-    
-    #df = pd.DataFrame(asteroidDict)
-    #return df
-
-
-def create_dataframe(ids):
-    asteroids = {}
-    key = get_key()
-    for id in ids:
-        url = "https://api.nasa.gov/neo/rest/v1/neo/" + id + "?api_key=" + key
-        response = requests.get(url)
-        data = response.json()
-        this_asteroid = {
-            'name' : data['name'],
-            'distances' : {},
-            'velocities' : {}
-        }
-        for date in data['close_approach_data']:
-            this_asteroid['velocities'][date['close_approach_date']] = date['relative_velocity']['kilometers_per_hour']
-            this_asteroid['distances'][date['close_approach_date']] = date['miss_distance']['kilometers']
-        asteroids[id] = this_asteroid
-    return asteroids
-
-
-def load_into_database(df):
-    conn = sqlite3.connect('database')
-    c = conn.cursor()
-    print("creating tables for each date")
-    for asteroid in df:
-        for date in df[asteroid]['distances']:
-            table_date = date.replace('-', '')
-            print("creating tables for " + date)
-            c.execute("CREATE TABLE IF NOT EXISTS " + table_date + " (id, name, distance, velocity)")
-    print("loading data into tables")
-    for asteroid in df:
-        print("loading " + asteroid)
-        for date in df[asteroid]['distances']:
-            table_date = date.replace('-', '')
-            c.execute("INSERT INTO " + table_date + " (distance) VALUES " + str(df[asteroid]['distances'][date]))
-            c.execute("INSERT INTO " + table_date + " (velocity) VALUES " + str(df[asteroid]['velocities'][date]))
-            c.execute("INSERT INTO " + table_date + " (name) VALUES " + str(df[asteroid]['name']))
-            c.execute("INSERT INTO " + table_date + " (id) VALUES " + str(asteroid))
-
 def get_key():
     with open('key.txt', 'r') as key_file:
         key = key_file.readlines()[0]
@@ -147,16 +53,26 @@ def get_unique_asteroids(data):
     return ids
 
 
+def get_info(ids):
+    print("Here are links to pages about all the asteroids near earth that week:")
+    for id in ids:
+        key = get_key()
+        url = 'https://api.nasa.gov/neo/rest/v1/neo/' + str(id) + '?api_key=' + key
+        response = requests.get(url)
+        data = response.json()
+        if data['is_potentially_hazardous_asteroid']:
+            print(data['name'].upper() + 'IS A POTENTIALLY HAZARDOUS ASTEROID')
+        print(data['name'] + '\t' + data['nasa_jpl_url'])
+
+
 def main():
-    inital_date = get_inital_date()
-    final_date = get_final_date(inital_date)
+    date = get_date()
     key = get_key()
-    url = "https://api.nasa.gov/neo/rest/v1/feed?start_date=" + inital_date + "&end_date=" + final_date + "&api_key=" + key
+    url = "https://api.nasa.gov/neo/rest/v1/feed?start_date=" + date + "&api_key=" + key
     response = requests.get(url)
     data = response.json()
     ids = get_unique_asteroids(data)
-    asteroids = create_dataframe(ids)
-    load_into_database(asteroids)
+    get_info(ids)
 
 
 if __name__ == '__main__':
