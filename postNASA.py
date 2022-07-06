@@ -22,16 +22,16 @@ def day_in_month(day, month):
     return False
 
 
-#Still need to make sure year is valid
+# Still need to make sure year is valid
 def get_date():
     year = str(input("Enter year of your inital date: "))
-    month = str(input("Enter the month of your inital date as a number (1 for jan, 2 for feb, etc.): "))
+    month = str(input("Enter the month of your inital date as a number"
+                 + "(1 for jan, 2 for feb, etc.): "))
     while int(month) < 1 or int(month) > 12:
         month = input("Please enter a number between 1 and 12 for the month: ")
     day = str(input("Enter the day of your inital date: "))
     while not day_in_month(int(day), int(month)):
-        day = str(input("Enter a valid day for the month of " + month + ": "))
-    
+        day = str(input("Enter a valid day for the month of " + month + ": "))    
     if int(day) < 10:
         day = "0" + day
     if int(month) < 10:
