@@ -78,32 +78,66 @@ def get_final_date(inital_date):
         return get_final_date(inital_date)
     return year + "-" + month + "-" + day
 
-def create_Dataframe(data,inital_date):
-    asteroidDict ={"    Asteroid Names  ":[],
-                    "   Distnace From Earth ":[],
-                    "   Velocity(km/hr) "   :[]
-    }
-    for i in range(len(data['near_earth_objects'][inital_date])-1):
-        name = data['near_earth_objects'][inital_date][i]['name']
-        asteroidDict["    Asteroid Names  "].append(name)
-        distanceFromEarth = data['near_earth_objects'][inital_date][i]['close_approach_data'][0]['miss_distance']['kilometers']
-        asteroidDict["   Distnace From Earth "].append(distanceFromEarth)
-        velocity =data['near_earth_objects'][inital_date][i]['close_approach_data'][0]['relative_velocity']['kilometers_per_hour']
-        asteroidDict["   Velocity(km/hr) "].append(velocity)
+#def create_Dataframe(data):
+    #asteroidDict ={"asteroid_names":[],
+     #               "distance_from_earth":[],
+  #                  "velocity":[]
+#    }
+ #   for i in range(len(data['near_earth_objects'][inital_date])-1):
+  #      name = data['near_earth_objects'][inital_date][i]['name']
+   #     asteroidDict["asteroid_names"].append(name)
+    ##   asteroidDict["distance"].append(distanceFromEarth)
+      #  velocity =data['near_earth_objects'][inital_date][i]['close_approach_data'][0]['relative_velocity']['kilometers_per_hour']
+       # asteroidDict["velocity"].append(velocity)
     
-    df = pd.DataFrame(asteroidDict)
-    display(df)
+    #df = pd.DataFrame(asteroidDict)
+    #return df
 
-with open('key.txt', 'r') as key_file:
-    key = key_file.readlines()[0]
-inital_date = get_inital_date()
-final_date = get_final_date(inital_date)
-url = "https://api.nasa.gov/neo/rest/v1/feed?start_date=" + inital_date + "&end_date=" + final_date + "&api_key=" + key
-print(inital_date)
-print(final_date)
-print(url)
-response = requests.get(url)
-print(response.status_code)
-data = response.json()
-print(create_Dataframe(data,inital_date))
-    
+
+def create_dataframe(ids):
+    asteroids = {}
+    key = get_key()
+    for id in ids:
+        url = "https://api.nasa.gov/neo/rest/v1/neo/" + id + "?api_key=" + key
+        response = requests.get(url)
+        data = response.json()
+        this_asteroid = {
+            'name' : data['name'],
+            'distances' : {},
+            'velocities' : {}
+        }
+        for date in data['close_approach_data']:
+            this_asteroid['velocities'][date['close_approach_date']] = date['relative_velocity']['kilometers_per_hour']
+            this_asteroid['distances'][date['close_approach_date']] = date['miss_distance']['kilometers']
+        asteroids[id] = this_asteroid
+    df = pd.DataFrame(asteroids)
+    return df
+
+
+def get_key():
+    with open('key.txt', 'r') as key_file:
+        key = key_file.readlines()[0]
+    return key
+
+
+def get_unique_asteroids(data):
+    ids = set()
+    for date in data['near_earth_objects']:
+        for asteroid in data['near_earth_objects'][date]:
+            ids.add(asteroid['id'])
+    return ids
+
+
+def main():
+    inital_date = get_inital_date()
+    final_date = get_final_date(inital_date)
+    key = get_key()
+    url = "https://api.nasa.gov/neo/rest/v1/feed?start_date=" + inital_date + "&end_date=" + final_date + "&api_key=" + key
+    response = requests.get(url)
+    data = response.json()
+    ids = get_unique_asteroids(data)
+    pprint.pprint(create_dataframe(ids))
+
+
+if __name__ == '__main__':
+    main()
