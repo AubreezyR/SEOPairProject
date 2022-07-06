@@ -5,16 +5,16 @@
 > Run python on GetAsteroids.py
 
 # **Requirements**
-* python
-* matplotlib library
-* requests library
-* pandas library
-* json library
-* IPython library
+> * python
+> * matplotlib library
+> * requests library
+> * pandas library
+> * json library
+> * IPython library
 
 # **Licensing**
 > No licensing at this time
 
 # **Contact**
-* adamaguiar10@gmail.com
-* auburn.l.robinson@gmail.com
+> * adamaguiar10@gmail.com
+> * auburn.l.robinson@gmail.com
