@@ -1,8 +1,9 @@
 import requests
 import pprint
-import pandas as pd
+import sqlite3
 import json
-from IPython.display import display
+import pandas as pd
+#from IPython.display import display
 
 # Add exception if file does not exist or no string in file
 
@@ -110,9 +111,27 @@ def create_dataframe(ids):
             this_asteroid['velocities'][date['close_approach_date']] = date['relative_velocity']['kilometers_per_hour']
             this_asteroid['distances'][date['close_approach_date']] = date['miss_distance']['kilometers']
         asteroids[id] = this_asteroid
-    df = pd.DataFrame(asteroids)
-    return df
+    return asteroids
 
+
+def load_into_database(df):
+    conn = sqlite3.connect('database')
+    c = conn.cursor()
+    print("creating tables for each date")
+    for asteroid in df:
+        for date in df[asteroid]['distances']:
+            table_date = date.replace('-', '')
+            print("creating tables for " + date)
+            c.execute("CREATE TABLE IF NOT EXISTS " + table_date + " (id, name, distance, velocity)")
+    print("loading data into tables")
+    for asteroid in df:
+        print("loading " + asteroid)
+        for date in df[asteroid]['distances']:
+            table_date = date.replace('-', '')
+            c.execute("INSERT INTO " + table_date + " (distance) VALUES " + str(df[asteroid]['distances'][date]))
+            c.execute("INSERT INTO " + table_date + " (velocity) VALUES " + str(df[asteroid]['velocities'][date]))
+            c.execute("INSERT INTO " + table_date + " (name) VALUES " + str(df[asteroid]['name']))
+            c.execute("INSERT INTO " + table_date + " (id) VALUES " + str(asteroid))
 
 def get_key():
     with open('key.txt', 'r') as key_file:
@@ -136,7 +155,8 @@ def main():
     response = requests.get(url)
     data = response.json()
     ids = get_unique_asteroids(data)
-    pprint.pprint(create_dataframe(ids))
+    asteroids = create_dataframe(ids)
+    load_into_database(asteroids)
 
 
 if __name__ == '__main__':
