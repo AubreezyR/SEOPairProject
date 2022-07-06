@@ -16,5 +16,5 @@
 > No licensing at this time
 
 # **Contact**
-> adamaguiar10@gmail.com
-> auburn.l.robinson@gmail.com
+* adamaguiar10@gmail.com
+* auburn.l.robinson@gmail.com
