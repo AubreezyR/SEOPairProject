@@ -26,12 +26,12 @@ def day_in_month(day, month):
 def get_date():
     year = str(input("Enter year of your inital date: "))
     month = str(input("Enter the month of your inital date as a number"
-                 + "(1 for jan, 2 for feb, etc.): "))
+                      + "(1 for jan, 2 for feb, etc.): "))
     while int(month) < 1 or int(month) > 12:
         month = input("Please enter a number between 1 and 12 for the month: ")
     day = str(input("Enter the day of your inital date: "))
     while not day_in_month(int(day), int(month)):
-        day = str(input("Enter a valid day for the month of " + month + ": "))    
+        day = str(input("Enter a valid day for the month of " + month + ": "))
     if int(day) < 10:
         day = "0" + day
     if int(month) < 10:
@@ -54,10 +54,12 @@ def get_unique_asteroids(data):
 
 
 def get_info(ids):
-    print("Here are links to pages about all the asteroids near earth that week:")
+    print("Here are links to pages about all the asteroids"
+          + "near earth that week:")
     for id in ids:
         key = get_key()
-        url = 'https://api.nasa.gov/neo/rest/v1/neo/' + str(id) + '?api_key=' + key
+        url = ('https://api.nasa.gov/neo/rest/v1/neo/'
+               + str(id) + '?api_key=' + key)
         response = requests.get(url)
         data = response.json()
         if data['is_potentially_hazardous_asteroid']:
@@ -68,7 +70,8 @@ def get_info(ids):
 def main():
     date = get_date()
     key = get_key()
-    url = "https://api.nasa.gov/neo/rest/v1/feed?start_date=" + date + "&api_key=" + key
+    url = ("https://api.nasa.gov/neo/rest/v1/feed?start_date="
+           + date + "&api_key=" + key)
     response = requests.get(url)
     data = response.json()
     ids = get_unique_asteroids(data)
