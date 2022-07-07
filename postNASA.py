@@ -1,6 +1,9 @@
 import requests
 import pprint
+import pandas as pd
 import json
+from IPython.display import display
+import matplotlib.pyplot as plt
 from datetime import date
 
 # Add exception if file does not exist or no string in file
@@ -67,6 +70,50 @@ def get_info(ids):
         print(data['name'] + '\t' + data['nasa_jpl_url'])
 
 
+def create_Graph(data, inital_date):
+
+    asteroidDict = {"Asteroid Names": [],
+                    "Distnace From Earth": [],
+                    "Velocity(km/hr)": [],
+                    "Threat": []
+                    }
+    # Crate table
+    for i in range(len(data['near_earth_objects'][inital_date])):
+        name = data['near_earth_objects'][inital_date][i]['name']
+        asteroidDict["Asteroid Names"].append(name)
+        distanceFromEarth = round(float(data['near_earth_objects'][inital_date][i]
+                                        ['close_approach_data'][0]['miss_distance']
+                                        ['kilometers']), 2)
+        asteroidDict["Distnace From Earth"].append(distanceFromEarth)
+        velocity = round(float(data['near_earth_objects'][inital_date][i]
+                               ['close_approach_data'][0]['relative_velocity']
+                               ['kilometers_per_hour']))
+        asteroidDict["Velocity(km/hr)"].append(velocity)
+        threat = data['near_earth_objects'][inital_date][i]['is_potentially_hazardous_asteroid']
+        asteroidDict["Threat"].append(threat)
+
+    # Create Distance graph
+    plt.bar(asteroidDict["Asteroid Names"],
+            asteroidDict["Distnace From Earth"])
+    plt.title("Asteroid  Distance (km)")
+    plt.xlabel("Asteroid Names")
+    plt.ylabel("Distance From Earth (km)")
+    plt.gcf().autofmt_xdate()
+    plt.savefig("DistanceGraph")
+
+    # Create Velocity graph
+    plt.bar(asteroidDict["Asteroid Names"], asteroidDict["Velocity(km/hr)"])
+    plt.title("Asteroid Velocity (km/hr)")
+    plt.xlabel("Asteroid Names")
+    plt.ylabel("Asteroid Velocity (km/hr))")
+    plt.gcf().autofmt_xdate()
+    plt.savefig("VelocityGraph")
+
+    # Print table
+    df = pd.DataFrame(asteroidDict)
+    display(df)
+
+
 def main():
     date = get_date()
     key = get_key()
@@ -76,6 +123,7 @@ def main():
     data = response.json()
     ids = get_unique_asteroids(data)
     get_info(ids)
+    create_Graph(data, date)
 
 
 if __name__ == '__main__':
