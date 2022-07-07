@@ -69,7 +69,6 @@ def get_info(ids):
             print(data['name'].upper() + 'IS A POTENTIALLY HAZARDOUS ASTEROID')
         print(data['name'] + '\t' + data['nasa_jpl_url'])
 
-
 def create_Graph(data, inital_date):
     
     asteroidDict = {"Asteroid Names": [],
@@ -113,7 +112,6 @@ def create_Graph(data, inital_date):
     df = pd.DataFrame(asteroidDict)
     display(df)
 
-
 def main():
     date = get_date()
     key = get_key()
@@ -123,10 +121,8 @@ def main():
     data = response.json()
     ids = get_unique_asteroids(data)
     get_info(ids)
-    create_Graph(data, date)
+    create_Graph(data,date)
 
 
 if __name__ == '__main__':
     main()
-# Footer
-# © 2022 GitHub, Inc.
