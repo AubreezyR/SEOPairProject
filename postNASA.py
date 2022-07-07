@@ -1,7 +1,6 @@
 import requests
 import pprint
 import pandas as pd
-import json
 from IPython.display import display
 import matplotlib.pyplot as plt
 import sqlite3 as sql
@@ -166,7 +165,7 @@ def main():
            + date + "&api_key=" + key)
     response = requests.get(url)
     data = response.json()
-    print(database(data))
+    miss_distances = database(data)
     ids = get_unique_asteroids(data)
     get_info(ids)
     create_Graph(data, date)
