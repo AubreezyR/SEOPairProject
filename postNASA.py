@@ -4,7 +4,7 @@ import pandas as pd
 import json
 from IPython.display import display
 import matplotlib.pyplot as plt
-from datetime import date
+import sqlite3 as sql
 
 
 def day_in_month(day, month):
@@ -64,14 +64,15 @@ def get_info(ids):
         response = requests.get(url)
         data = response.json()
         if data['is_potentially_hazardous_asteroid']:
-            print(data['name'].upper() + '\tIS A POTENTIALLY HAZARDOUS ASTEROID')
-        print(data['name'] + '\t' + data['nasa_jpl_url'])
+            print(data['name'].upper()
+                  + '\t\tIS A POTENTIALLY HAZARDOUS ASTEROID')
+        print(data['name'] + '\t\t' + data['nasa_jpl_url'])
 
 
 def create_Graph(data, inital_date):
 
     asteroidDict = {"Asteroid Names": [],
-                    "Distnace From Earth": [],
+                    "Distance From Earth": [],
                     "Velocity(km/hr)": [],
                     "Threat": []
                     }
@@ -79,20 +80,23 @@ def create_Graph(data, inital_date):
     for i in range(len(data['near_earth_objects'][inital_date])):
         name = data['near_earth_objects'][inital_date][i]['name']
         asteroidDict["Asteroid Names"].append(name)
-        distanceFromEarth = round(float(data['near_earth_objects'][inital_date][i]
-                                        ['close_approach_data'][0]['miss_distance']
+        distanceFromEarth = round(float(data['near_earth_objects']
+                                        [inital_date][i]
+                                        ['close_approach_data']
+                                        [0]['miss_distance']
                                         ['kilometers']), 2)
-        asteroidDict["Distnace From Earth"].append(distanceFromEarth)
+        asteroidDict["Distance From Earth"].append(distanceFromEarth)
         velocity = round(float(data['near_earth_objects'][inital_date][i]
                                ['close_approach_data'][0]['relative_velocity']
                                ['kilometers_per_hour']))
         asteroidDict["Velocity(km/hr)"].append(velocity)
-        threat = data['near_earth_objects'][inital_date][i]['is_potentially_hazardous_asteroid']
+        threat = data(['near_earth_objects'][inital_date][i]
+                      ['is_potentially_hazardous_asteroid'])
         asteroidDict["Threat"].append(threat)
 
     # Create Distance graph
     plt.bar(asteroidDict["Asteroid Names"],
-            asteroidDict["Distnace From Earth"])
+            asteroidDict["Distance From Earth"])
     plt.title("Asteroid  Distance (km)")
     plt.xlabel("Asteroid Names")
     plt.ylabel("Distance From Earth (km)")
@@ -112,6 +116,49 @@ def create_Graph(data, inital_date):
     display(df)
 
 
+def database(data):
+    closest_known_misses = []
+    conn = sql.connect('database.db')
+    c = conn.cursor()
+    table = ("CREATE TABLE IF NOT EXISTS asteroids ("
+             + "id text,"
+             + "name text,"
+             + "size text,"
+             + "closest_miss_distance text)")
+    c.execute(table)
+
+    for date in data['near_earth_objects']:
+        for asteroid in data['near_earth_objects'][date]:
+            query = ("SELECT closest_miss_distance from asteroids "
+                     + "WHERE id=?;")
+            c.execute(query, (str(asteroid['id']),))
+            miss_distance = c.fetchall()
+
+            if len(miss_distance) > 0:
+                miss_distance = miss_distance[0]
+            else:
+                miss_distance = None
+
+            new_miss_distance = float(asteroid['close_approach_data']
+                                      [0]['miss_distance']['kilometers'])
+            if miss_distance is not None and miss_distance > new_miss_distance:
+                update = ("UPDATE asteroids "
+                          + "SET closest_miss_distance = ? "
+                          + "WHERE id = ?;")
+                c.execute(update, (str(new_miss_distance),
+                          str(asteroid['id']),))
+                closest_known_misses.append(miss_distance)
+            else:
+                update = ("REPLACE INTO asteroids"
+                          + "(id, name, size, closest_miss_distance)"
+                          + "VALUES(?, ?, ?, ?);")
+                c.execute(update, (str(asteroid['id']), asteroid['name'],
+                          str(asteroid['estimated_diameter']['kilometers']),
+                          str(new_miss_distance),))
+                closest_known_misses.append(new_miss_distance)
+    return closest_known_misses
+
+
 def main():
     date = get_date()
     key = get_key()
@@ -119,6 +166,7 @@ def main():
            + date + "&api_key=" + key)
     response = requests.get(url)
     data = response.json()
+    print(database(data))
     ids = get_unique_asteroids(data)
     get_info(ids)
     create_Graph(data, date)
