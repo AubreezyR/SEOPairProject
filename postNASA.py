@@ -69,48 +69,73 @@ def get_info(ids):
             print(data['name'].upper() + 'IS A POTENTIALLY HAZARDOUS ASTEROID')
         print(data['name'] + '\t' + data['nasa_jpl_url'])
 
-def create_Graph(data, inital_date):
-    
+
+def create_Table(data):
+
     asteroidDict = {"Asteroid Names": [],
                     "Distnace From Earth": [],
                     "Velocity(km/hr)": [],
                     "Threat": []
                     }
+    # print(data['near_earth_objects'][inital_date][0].keys())
     # Crate table
-    for i in range(len(data['near_earth_objects'][inital_date])):
-        name = data['near_earth_objects'][inital_date][i]['name']
-        asteroidDict["Asteroid Names"].append(name)
-        distanceFromEarth = round(float(data['near_earth_objects'][inital_date][i]
-                                        ['close_approach_data'][0]['miss_distance']
-                                        ['kilometers']), 2)
-        asteroidDict["Distnace From Earth"].append(distanceFromEarth)
-        velocity = round(float(data['near_earth_objects'][inital_date][i]
-                               ['close_approach_data'][0]['relative_velocity']
-                               ['kilometers_per_hour']))
-        asteroidDict["Velocity(km/hr)"].append(velocity)
-        threat = data['near_earth_objects'][inital_date][i]['is_potentially_hazardous_asteroid']
-        asteroidDict["Threat"].append(threat)
+    for inital_date in data['near_earth_objects']:
+        for i in range(len(data['near_earth_objects'][inital_date])):
+            name = data['near_earth_objects'][inital_date][i]['name']
+            asteroidDict["Asteroid Names"].append(name)
+            distanceFromEarth = round(float(data['near_earth_objects'][inital_date][i]
+                                            ['close_approach_data'][0]['miss_distance']
+                                            ['kilometers']), 2)
+            asteroidDict["Distnace From Earth"].append(distanceFromEarth)
+            velocity = round(float(data['near_earth_objects'][inital_date][i]
+                                   ['close_approach_data'][0]['relative_velocity']
+                                   ['kilometers_per_hour']))
+            asteroidDict["Velocity(km/hr)"].append(velocity)
+            threat = data['near_earth_objects'][inital_date][i]['is_potentially_hazardous_asteroid']
+            asteroidDict["Threat"].append(threat)
 
     # Create Distance graph
-    plt.bar(asteroidDict["Asteroid Names"],
-            asteroidDict["Distnace From Earth"])
-    plt.title("Asteroid  Distance (km)")
-    plt.xlabel("Asteroid Names")
-    plt.ylabel("Distance From Earth (km)")
-    plt.gcf().autofmt_xdate()
-    plt.savefig("DistanceGraph")
-
-    # Create Velocity graph
-    plt.bar(asteroidDict["Asteroid Names"], asteroidDict["Velocity(km/hr)"])
-    plt.title("Asteroid Velocity (km/hr)")
-    plt.xlabel("Asteroid Names")
-    plt.ylabel("Asteroid Velocity (km/hr))")
-    plt.gcf().autofmt_xdate()
-    plt.savefig("VelocityGraph")
+    create_Graph(
+        asteroidDict["Asteroid Names"],
+        asteroidDict["Distnace From Earth"],
+        "Asteroid  Distance (km)",
+        "Asteroid Names",
+        "Distance From Earth (km)",
+        asteroidDict["Asteroid Names"],
+        asteroidDict["Velocity(km/hr)"],
+        "Asteroid Velocity (km/hr)",
+        "Asteroid Names",
+        "Asteroid Velocity (km/hr))",
+        "DataGraph")
 
     # Print table
     df = pd.DataFrame(asteroidDict)
     display(df)
+
+
+def create_Graph(xv, yv, title, xl, yl, xv2, yv2, title2, xl2, yl2, fn):
+    fig = plt.figure(figsize=(20, 10))
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax2 = fig.add_subplot(1, 2, 2)
+    ax1.bar(xv, yv)
+    ax1.set_xticklabels(
+        xv,
+        rotation=45,
+        horizontalalignment='right',
+        fontsize='7')
+    ax1.set_title(title, fontsize="12")
+    ax1.set_ylabel(yl)
+
+    ax2.bar(xv2, yv2)
+    ax2.set_xticklabels(
+        xv2,
+        rotation=45,
+        horizontalalignment='right',
+        fontsize='7')
+    ax2.set_title(title2, fontsize="12")
+    ax2.set_ylabel(yl2)
+    plt.savefig(fn)
+
 
 def main():
     date = get_date()
@@ -119,9 +144,9 @@ def main():
            + date + "&api_key=" + key)
     response = requests.get(url)
     data = response.json()
-    ids = get_unique_asteroids(data)
-    get_info(ids)
-    create_Graph(data,date)
+    #ids = get_unique_asteroids(data)
+    # get_info(ids)
+    create_Table(data)
 
 
 if __name__ == '__main__':
