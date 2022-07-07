@@ -71,13 +71,14 @@ def get_info(ids):
 
 
 def create_Graph(data, inital_date):
+    
     asteroidDict = {"Asteroid Names": [],
                     "Distnace From Earth": [],
                     "Velocity(km/hr)": [],
                     "Threat": []
                     }
     # Crate table
-    for i in range(len(data['near_earth_objects'][inital_date]) - 1):
+    for i in range(len(data['near_earth_objects'][inital_date])):
         name = data['near_earth_objects'][inital_date][i]['name']
         asteroidDict["Asteroid Names"].append(name)
         distanceFromEarth = round(float(data['near_earth_objects'][inital_date][i]
@@ -121,7 +122,7 @@ def main():
     response = requests.get(url)
     data = response.json()
     ids = get_unique_asteroids(data)
-    # get_info(ids)
+    get_info(ids)
     create_Graph(data, date)
 
 

@@ -15,6 +15,17 @@ class TestpostYT(unittest.TestCase):
         self.assertEqual(True,day_in_month(1,4))
         self.assertEqual(False,day_in_month(31,6))
         self.assertEqual(True,day_in_month(30,9))
+    
+    
+    def test_returnValue_datatype_for_get_unique_asteroids(self):
+        expected = set()
+        date = get_date()
+        key = get_key()
+        url = ("https://api.nasa.gov/neo/rest/v1/feed?start_date="
+           + date + "&api_key=" + key)
+        response = requests.get(url)
+        data = response.json()
+        self.assertEqual(type(get_unique_asteroids(data)),type(expected))
 
 
 if __name__ == '__main__':
