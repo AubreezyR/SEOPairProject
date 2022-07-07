@@ -3,6 +3,8 @@ import pprint
 import pandas as pd
 import json
 from IPython.display import display
+import matplotlib.pyplot as plt
+from datetime import date
 
 # Add exception if file does not exist or no string in file
 
@@ -24,16 +26,15 @@ def day_in_month(day, month):
 
 
 # Still need to make sure year is valid
-def get_inital_date():
+def get_date():
     year = str(input("Enter year of your inital date: "))
-    month = str(input("Enter the month of your inital date as a number
-                      "(1 for jan, 2 for feb, etc.): "))
+    month = str(input("Enter the month of your inital date as a number"
+                      + "(1 for jan, 2 for feb, etc.): "))
     while int(month) < 1 or int(month) > 12:
         month = input("Please enter a number between 1 and 12 for the month: ")
     day = str(input("Enter the day of your inital date: "))
     while not day_in_month(int(day), int(month)):
         day = str(input("Enter a valid day for the month of " + month + ": "))
-
     if int(day) < 10:
         day = "0" + day
     if int(month) < 10:
@@ -41,74 +42,90 @@ def get_inital_date():
     return year + "-" + month + "-" + day
 
 
-def valid_end_date(inital_date, end_year, end_month, end_day):
-    if int(end_year) < int(inital_date[0:4]):
-        return False
-    if int(end_year) > int(inital_date[0:4]):
-        return True
-    if int(end_month) < int(inital_date[5:7]):
-        return False
-    if int(end_month) > int(inital_date[5:7]):
-        return True
-    if int(end_day) < int(inital_date[8:10]):
-        return False
-    if int(end_day) > int(inital_date[8:10]):
-        return True
-    return True
+def get_key():
+    with open('key.txt', 'r') as key_file:
+        key = key_file.readlines()[0]
+    return key
 
 
-def get_final_date(inital_date):
-    response = input("Would you like to only get the
-                     "asteroids of 1 week? Type y/n: ")
-    if response[0].lower() == 'y':
-        return inital_date
-    year = str(input("Enter year of your final date: "))
-    month = str(input("Enter the month of your final date as a number
-                      "(1 for jan, 2 for feb, etc.): "))
-    while int(month) < 1 or int(month) > 12:
-        month = input("Please enter a number between 1 and 12 for the month: ")
-    day = str(input("Enter the day of your final date: "))
-    while not day_in_month(int(day), int(month)):
-        day = str(input("Enter a valid day for the month of " + month + ": "))
-    if int(day) < 10:
-        day = "0" + day
-    if int(month) < 10:
-        month = "0" + month
-    if not valid_end_date(inital_date, year, month, day):
-        print("Your end date must be after your start date.")
-        return get_final_date(inital_date)
-    return year + "-" + month + "-" + day
+def get_unique_asteroids(data):
+    ids = set()
+    for date in data['near_earth_objects']:
+        for asteroid in data['near_earth_objects'][date]:
+            ids.add(asteroid['id'])
+    return ids
 
 
-def create_Dataframe(data, inital_date):
-    asteroidDict = {"    Asteroid Names  ": [],
-                    "   Distnace From Earth ": [],
-                    "   Velocity(km/hr) ": []
-                   }
-    for i in range(len(data['near_earth_objects'][inital_date])-1):
+def get_info(ids):
+    print("Here are links to pages about all the asteroids"
+          + "near earth that week:")
+    for id in ids:
+        key = get_key()
+        url = ('https://api.nasa.gov/neo/rest/v1/neo/'
+               + str(id) + '?api_key=' + key)
+        response = requests.get(url)
+        data = response.json()
+        if data['is_potentially_hazardous_asteroid']:
+            print(data['name'].upper() + 'IS A POTENTIALLY HAZARDOUS ASTEROID')
+        print(data['name'] + '\t' + data['nasa_jpl_url'])
+
+
+def create_Graph(data, inital_date):
+    asteroidDict = {"Asteroid Names": [],
+                    "Distnace From Earth": [],
+                    "Velocity(km/hr)": [],
+                    "Threat": []
+                    }
+    # Crate table
+    for i in range(len(data['near_earth_objects'][inital_date]) - 1):
         name = data['near_earth_objects'][inital_date][i]['name']
-        asteroidDict["    Asteroid Names  "].append(name)
-        distanceFromEarth = data['near_earth_objects'][inital_date][i]
-                                ['close_approach_data'][0]['miss_distance']
-                                ['kilometers']
-        asteroidDict["   Distnace From Earth "].append(distanceFromEarth)
-        velocity =data['near_earth_objects'][inital_date][i]
-                      ['close_approach_data'][0]['relative_velocity']
-                      ['kilometers_per_hour']
-        asteroidDict["   Velocity(km/hr) "].append(velocity)
-    
+        asteroidDict["Asteroid Names"].append(name)
+        distanceFromEarth = round(float(data['near_earth_objects'][inital_date][i]
+                                        ['close_approach_data'][0]['miss_distance']
+                                        ['kilometers']), 2)
+        asteroidDict["Distnace From Earth"].append(distanceFromEarth)
+        velocity = round(float(data['near_earth_objects'][inital_date][i]
+                               ['close_approach_data'][0]['relative_velocity']
+                               ['kilometers_per_hour']))
+        asteroidDict["Velocity(km/hr)"].append(velocity)
+        threat = data['near_earth_objects'][inital_date][i]['is_potentially_hazardous_asteroid']
+        asteroidDict["Threat"].append(threat)
+
+    # Create Distance graph
+    plt.bar(asteroidDict["Asteroid Names"],
+            asteroidDict["Distnace From Earth"])
+    plt.title("Asteroid  Distance (km)")
+    plt.xlabel("Asteroid Names")
+    plt.ylabel("Distance From Earth (km)")
+    plt.gcf().autofmt_xdate()
+    plt.savefig("DistanceGraph")
+
+    # Create Velocity graph
+    plt.bar(asteroidDict["Asteroid Names"], asteroidDict["Velocity(km/hr)"])
+    plt.title("Asteroid Velocity (km/hr)")
+    plt.xlabel("Asteroid Names")
+    plt.ylabel("Asteroid Velocity (km/hr))")
+    plt.gcf().autofmt_xdate()
+    plt.savefig("VelocityGraph")
+
+    # Print table
     df = pd.DataFrame(asteroidDict)
     display(df)
 
 
-with open('key.txt', 'r') as key_file:
-    key = key_file.readlines()[0]
-inital_date = get_inital_date()
-final_date = get_final_date(inital_date)
-url = "https://api.nasa.gov/neo/rest/v1/feed?start_date=" + inital_date + "&end_date=" + final_date + "&api_key=" + key
+def main():
+    date = get_date()
+    key = get_key()
+    url = ("https://api.nasa.gov/neo/rest/v1/feed?start_date="
+           + date + "&api_key=" + key)
+    response = requests.get(url)
+    data = response.json()
+    ids = get_unique_asteroids(data)
+    # get_info(ids)
+    create_Graph(data, date)
 
-response = requests.get(url)
-print(response.status_code)
-data = response.json()
-print(create_Dataframe(data,inital_date))
-    
+
+if __name__ == '__main__':
+    main()
+# Footer
+# © 2022 GitHub, Inc.
