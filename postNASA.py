@@ -185,7 +185,11 @@ def main():
     data = response.json()
     miss_distances = database(data)
     ids = get_unique_asteroids(data)
+<<<<<<< HEAD
     # get_info(ids)
+=======
+    #get_info(ids)
+>>>>>>> 448f591893392bc594740becf85cf31b4584b858
     create_Table(data)
 
 
