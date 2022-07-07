@@ -64,7 +64,8 @@ def get_info(ids):
         response = requests.get(url)
         data = response.json()
         if data['is_potentially_hazardous_asteroid']:
-            print(data['name'].upper() + '\t\tIS A POTENTIALLY HAZARDOUS ASTEROID')
+            print(data['name'].upper()
+                  + '\t\tIS A POTENTIALLY HAZARDOUS ASTEROID')
         print(data['name'] + '\t\t' + data['nasa_jpl_url'])
 
 
@@ -79,15 +80,18 @@ def create_Graph(data, inital_date):
     for i in range(len(data['near_earth_objects'][inital_date])):
         name = data['near_earth_objects'][inital_date][i]['name']
         asteroidDict["Asteroid Names"].append(name)
-        distanceFromEarth = round(float(data['near_earth_objects'][inital_date][i]
-                                        ['close_approach_data'][0]['miss_distance']
+        distanceFromEarth = round(float(data['near_earth_objects']
+                                        [inital_date][i]
+                                        ['close_approach_data']
+                                        [0]['miss_distance']
                                         ['kilometers']), 2)
         asteroidDict["Distance From Earth"].append(distanceFromEarth)
         velocity = round(float(data['near_earth_objects'][inital_date][i]
                                ['close_approach_data'][0]['relative_velocity']
                                ['kilometers_per_hour']))
         asteroidDict["Velocity(km/hr)"].append(velocity)
-        threat = data['near_earth_objects'][inital_date][i]['is_potentially_hazardous_asteroid']
+        threat = data(['near_earth_objects'][inital_date][i]
+                      ['is_potentially_hazardous_asteroid'])
         asteroidDict["Threat"].append(threat)
 
     # Create Distance graph
@@ -120,15 +124,13 @@ def database(data):
              + "id text,"
              + "name text,"
              + "size text,"
-             + "closest_miss_distance text)"
-    )
+             + "closest_miss_distance text)")
     c.execute(table)
 
     for date in data['near_earth_objects']:
         for asteroid in data['near_earth_objects'][date]:
             query = ("SELECT closest_miss_distance from asteroids "
-                     + "WHERE id=?;"
-            )
+                     + "WHERE id=?;")
             c.execute(query, (str(asteroid['id']),))
             miss_distance = c.fetchall()
 
@@ -137,26 +139,26 @@ def database(data):
             else:
                 miss_distance = None
 
-            new_miss_distance = float(asteroid['close_approach_data'][0]['miss_distance']['kilometers'])
+            new_miss_distance = float(asteroid['close_approach_data']
+                                      [0]['miss_distance']['kilometers'])
             if miss_distance is not None and miss_distance > new_miss_distance:
                 update = ("UPDATE asteroids "
                           + "SET closest_miss_distance = ? "
-                          + "WHERE id = ?;"
-                )
-                c.execute(update, (str(new_miss_distance), str(asteroid['id']),))
+                          + "WHERE id = ?;")
+                c.execute(update, (str(new_miss_distance),
+                          str(asteroid['id']),))
                 closest_known_misses.append(miss_distance)
             else:
                 update = ("REPLACE INTO asteroids"
-                         + "(id, name, size, closest_miss_distance)"
-                         + "VALUES(?, ?, ?, ?);"
-                )
-                c.execute(update, (str(asteroid['id']), asteroid['name'], 
+                          + "(id, name, size, closest_miss_distance)"
+                          + "VALUES(?, ?, ?, ?);")
+                c.execute(update, (str(asteroid['id']), asteroid['name'],
                           str(asteroid['estimated_diameter']['kilometers']),
                           str(new_miss_distance),))
                 closest_known_misses.append(new_miss_distance)
     return closest_known_misses
-                
-    
+
+
 def main():
     date = get_date()
     key = get_key()
