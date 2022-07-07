@@ -17,7 +17,7 @@ class TestpostYT(unittest.TestCase):
         self.assertEqual(True,day_in_month(30,9))
     
     
-    def test_returnValue_datatype_for_get_unique_asteroids(self):
+    def test_returnValue_datatype_for_get_unique_asteroids_and_database(self):
         expected = set()
         date = get_date()
         key = get_key()
@@ -26,6 +26,7 @@ class TestpostYT(unittest.TestCase):
         response = requests.get(url)
         data = response.json()
         self.assertEqual(type(get_unique_asteroids(data)),type(expected))
+        self.assertEqual(type(database(data)),type([]))
 
 
 if __name__ == '__main__':
