@@ -185,7 +185,7 @@ def main():
     miss_distances = database(data)
     ids = get_unique_asteroids(data)
     get_info(ids)
-    create_Graph(data, date)
+    create_Table(data)
 
 
 if __name__ == '__main__':
