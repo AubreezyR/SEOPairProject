@@ -6,8 +6,6 @@ from IPython.display import display
 import matplotlib.pyplot as plt
 from datetime import date
 
-# Add exception if file does not exist or no string in file
-
 
 def day_in_month(day, month):
     if month in (1, 3, 5, 7, 8, 10, 12):
@@ -66,7 +64,7 @@ def get_info(ids):
         response = requests.get(url)
         data = response.json()
         if data['is_potentially_hazardous_asteroid']:
-            print(data['name'].upper() + 'IS A POTENTIALLY HAZARDOUS ASTEROID')
+            print(data['name'].upper() + '\tIS A POTENTIALLY HAZARDOUS ASTEROID')
         print(data['name'] + '\t' + data['nasa_jpl_url'])
 
 
