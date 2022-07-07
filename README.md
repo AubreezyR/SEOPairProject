@@ -9,8 +9,8 @@
 > * matplotlib library
 > * requests library
 > * pandas library
-> * json library
 > * IPython library
+> * sqlite3 library
 
 # **Licensing**
 > No licensing at this time
