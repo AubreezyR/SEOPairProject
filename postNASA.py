@@ -75,7 +75,7 @@ def create_Table(data):
                     "Velocity(km/hr)": [],
                     "Threat": []
                     }
-    # Crate table
+    # Create table
     for inital_date in data['near_earth_objects']:
         for i in range(len(data['near_earth_objects'][inital_date])):
             name = data['near_earth_objects'][inital_date][i]['name']
@@ -95,18 +95,13 @@ def create_Table(data):
                       [i]['is_potentially_hazardous_asteroid'])
             asteroidDict["Threat"].append(threat)
 
-    # Create Distance graph
     create_Graph(
         asteroidDict["Asteroid Names"],
         asteroidDict["Distnace From Earth"],
         "Asteroid  Distance (km)",
-        "Asteroid Names",
         "Distance From Earth (km)",
-        asteroidDict["Asteroid Names"],
         asteroidDict["Velocity(km/hr)"],
-        "Asteroid Velocity (km/hr)",
-        "Asteroid Names",
-        "Asteroid Velocity (km/hr))",
+        "Closest asteroids",
         "DataGraph")
 
     # Print table
@@ -114,7 +109,7 @@ def create_Table(data):
     display(df)
 
 
-def create_Graph(xv, yv, title, xl, yl, xv2, yv2, title2, xl2, yl2, fn):
+def create_Graph(xv, yv, title, yl, yv2, title2, fn):
     fig = plt.figure(figsize=(20, 10))
     ax1 = fig.add_subplot(1, 2, 1)
     ax2 = fig.add_subplot(1, 2, 2)
@@ -127,14 +122,14 @@ def create_Graph(xv, yv, title, xl, yl, xv2, yv2, title2, xl2, yl2, fn):
     ax1.set_title(title, fontsize="12")
     ax1.set_ylabel(yl)
 
-    ax2.bar(xv2, yv2)
+    ax2.bar(xv, yv2)
     ax2.set_xticklabels(
-        xv2,
+        xv,
         rotation=45,
         horizontalalignment='right',
         fontsize='7')
     ax2.set_title(title2, fontsize="12")
-    ax2.set_ylabel(yl2)
+    ax2.set_ylabel(yl)
     plt.savefig(fn)
 
 
@@ -190,7 +185,7 @@ def main():
     data = response.json()
     miss_distances = database(data)
     ids = get_unique_asteroids(data)
-    get_info(ids)
+    #get_info(ids)
     create_Table(data)
 
 
