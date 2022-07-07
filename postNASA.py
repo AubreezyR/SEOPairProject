@@ -67,6 +67,7 @@ def get_info(ids):
                   + '\t\tIS A POTENTIALLY HAZARDOUS ASTEROID')
         print(data['name'] + '\t\t' + data['nasa_jpl_url'])
 
+
 def create_Table(data):
 
     asteroidDict = {"Asteroid Names": [],
@@ -79,15 +80,19 @@ def create_Table(data):
         for i in range(len(data['near_earth_objects'][inital_date])):
             name = data['near_earth_objects'][inital_date][i]['name']
             asteroidDict["Asteroid Names"].append(name)
-            distanceFromEarth = round(float(data['near_earth_objects'][inital_date][i]
-                                            ['close_approach_data'][0]['miss_distance']
+            distanceFromEarth = round(float(data['near_earth_objects']
+                                            [inital_date][i]
+                                            ['close_approach_data'][0]
+                                            ['miss_distance']
                                             ['kilometers']), 2)
             asteroidDict["Distnace From Earth"].append(distanceFromEarth)
             velocity = round(float(data['near_earth_objects'][inital_date][i]
-                                   ['close_approach_data'][0]['relative_velocity']
+                                   ['close_approach_data'][0]
+                                   ['relative_velocity']
                                    ['kilometers_per_hour']))
             asteroidDict["Velocity(km/hr)"].append(velocity)
-            threat = data['near_earth_objects'][inital_date][i]['is_potentially_hazardous_asteroid']
+            threat = (data['near_earth_objects'][inital_date]
+                      [i]['is_potentially_hazardous_asteroid'])
             asteroidDict["Threat"].append(threat)
 
     # Create Distance graph
@@ -131,6 +136,7 @@ def create_Graph(xv, yv, title, xl, yl, xv2, yv2, title2, xl2, yl2, fn):
     ax2.set_title(title2, fontsize="12")
     ax2.set_ylabel(yl2)
     plt.savefig(fn)
+
 
 def database(data):
     closest_known_misses = []
