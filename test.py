@@ -27,7 +27,7 @@ class TestpostYT(unittest.TestCase):
         data = response.json()
         self.assertEqual(type(get_unique_asteroids(data)), type(expected))
         self.assertEqual(type(database(data)), type([]))
-    
+
     def test_main():
         pass
 
