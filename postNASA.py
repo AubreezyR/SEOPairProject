@@ -24,6 +24,7 @@ def day_in_month(day, month):
 
 # Still need to make sure year is valid
 def get_date():
+
     year = str(input("Enter year of your inital date: "))
     month = str(input("Enter the month of your inital date as a number"
                       + "(1 for jan, 2 for feb, etc.): "))
@@ -68,7 +69,7 @@ def get_info(ids):
         print(data['name'] + '\t\t' + data['nasa_jpl_url'])
 
 
-def create_Table(data):
+def create_Table(data,miss_distances):
 
     asteroidDict = {"Asteroid Names": [],
                     "Distnace From Earth": [],
@@ -97,11 +98,11 @@ def create_Table(data):
 
     create_Graph(
         asteroidDict["Asteroid Names"],
-        asteroidDict["Distnace From Earth"],
-        "Asteroid  Distance (km)",
-        "Distance From Earth (km)",
         asteroidDict["Velocity(km/hr)"],
-        "Closest asteroids",
+        "Asteroid  Velocity (km/hr)",
+        "Velocity (km/hr)",
+        miss_distances,
+        "Asteroids Closest to Earth",
         "DataGraph")
 
     # Print table
@@ -110,28 +111,29 @@ def create_Table(data):
 
 
 def create_Graph(xv, yv, title, yl, yv2, title2, fn):
-    fig = plt.figure(figsize=(20, 10))
+    fig = plt.figure(figsize=(100, 50))
     ax1 = fig.add_subplot(1, 2, 1)
     ax2 = fig.add_subplot(1, 2, 2)
-    ax1.bar(xv, yv)
+    ax1.bar(xv, yv, align='edge', width=.3, color=(0.2, 0, 0, 0.6))
     ax1.set_xticklabels(
         xv,
         rotation=45,
         horizontalalignment='right',
-        fontsize='7')
-    ax1.set_title(title, fontsize="12")
-    ax1.set_ylabel(yl)
+        fontsize='15')
+    ax1.set_yticklabels(yv,fontsize='15')
+    ax1.set_title(title, fontsize="60")
+    ax1.set_ylabel(yl, fontsize='40')
 
-    ax2.bar(xv, yv2)
+    ax2.bar(xv, yv2, align='edge', width=.3)
     ax2.set_xticklabels(
         xv,
         rotation=45,
         horizontalalignment='right',
-        fontsize='7')
-    ax2.set_title(title2, fontsize="12")
-    ax2.set_ylabel(yl)
+        fontsize='15') 
+    ax2.set_yticklabels(yv2,fontsize='15')
+    ax2.set_title(title2, fontsize="60")
+    ax2.set_ylabel("Distance from Earth(km)", fontsize='40')
     plt.savefig(fn)
-
 
 def database(data):
     closest_known_misses = []
@@ -177,16 +179,22 @@ def database(data):
 
 
 def main():
-    date = get_date()
-    key = get_key()
-    url = ("https://api.nasa.gov/neo/rest/v1/feed?start_date="
-           + date + "&api_key=" + key)
-    response = requests.get(url)
-    data = response.json()
-    miss_distances = database(data)
-    ids = get_unique_asteroids(data)
-    get_info(ids)
-    create_Table(data)
+    try:
+        date = get_date()
+        key = get_key()
+        url = ("https://api.nasa.gov/neo/rest/v1/feed?start_date="
+            + date + "&api_key=" + key)
+        response = requests.get(url)
+        data = response.json()
+        miss_distances = database(data)
+        create_Table(data,miss_distances)
+        ids = get_unique_asteroids(data)
+        moreLinks = input("Would you like links for more information on each asteroid. Enter 'yes' for links or anything else for no: ")
+        if(moreLinks.lower() == 'yes'):
+            get_info(ids)
+    except KeyError:
+        print("Please try again with a valid date")
+        main()
 
 
 if __name__ == '__main__':
